@@ -2,38 +2,43 @@
 <html>
 <head>
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-teleport-controls@1.0.0/dist/aframe-teleport-controls.min.js"></script>
 </head>
 <body>
   <a-scene 
     xr="requiredFeatures: local-floor, controllers" 
     webxr
   >
-    <!-- Камера и контроллеры -->
+    <!-- Игрок и камера -->
+    <a-entity id="player" position="0 1.6 0">
+      <a-entity camera look-controls></a-entity>
+    </a-entity>
+
+    <!-- Контроллеры -->
     <a-entity 
       id="left-controller" 
-      hand-controls="left" 
+      oculus-touch-controls="hand: left" 
       thumbstick-movement
     ></a-entity>
     <a-entity 
       id="right-controller" 
-      hand-controls="right"
+      oculus-touch-controls="hand: right"
     ></a-entity>
-    <a-entity camera look-controls position="0 1.6 0"></a-entity>
 
-    <!-- Объекты сцены -->
+    <!-- Объекты -->
     <a-box position="0 0.5 -3" color="#4CC3D9"></a-box>
     <a-sky color="#ECECEC"></a-sky>
   </a-scene>
 
   <script>
-    // Компонент для перемещения через джойстик
     AFRAME.registerComponent('thumbstick-movement', {
       init: function () {
         this.speed = 0.1;
         this.direction = new THREE.Vector3();
 
         this.el.addEventListener('axismove', (evt) => {
-          if (evt.detail.axis.length > 1) {
+          console.log('Джойстик:', evt.detail.axis);
+          if (evt.detail.axis.length >= 2) {
             const [xAxis, yAxis] = evt.detail.axis;
             this.direction.set(xAxis, 0, -yAxis).normalize();
           }
@@ -41,14 +46,13 @@
       },
 
       tick: function () {
-        const camera = document.querySelector('[camera]');
-        const position = camera.getAttribute('position');
+        const player = document.querySelector('#player');
         const newPosition = {
-          x: position.x + this.direction.x * this.speed,
-          y: position.y,
-          z: position.z + this.direction.z * this.speed
+          x: player.object3D.position.x + this.direction.x * this.speed,
+          y: player.object3D.position.y,
+          z: player.object3D.position.z + this.direction.z * this.speed
         };
-        camera.setAttribute('position', newPosition);
+        player.setAttribute('position', newPosition);
       }
     });
   </script>
